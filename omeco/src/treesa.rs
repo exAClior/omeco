@@ -123,7 +123,7 @@ impl TreeSA {
 }
 
 /// Build a label-to-integer mapping for an EinCode.
-fn build_label_map<L: Label>(code: &EinCode<L>) -> (HashMap<L, usize>, Vec<L>) {
+pub(crate) fn build_label_map<L: Label>(code: &EinCode<L>) -> (HashMap<L, usize>, Vec<L>) {
     let labels = code.unique_labels();
     let map: HashMap<L, usize> = labels
         .iter()
@@ -135,7 +135,7 @@ fn build_label_map<L: Label>(code: &EinCode<L>) -> (HashMap<L, usize>, Vec<L>) {
 }
 
 /// Convert EinCode input indices to integer indices.
-fn convert_to_int_indices<L: Label>(
+pub(crate) fn convert_to_int_indices<L: Label>(
     ixs: &[Vec<L>],
     label_map: &HashMap<L, usize>,
 ) -> Vec<Vec<usize>> {

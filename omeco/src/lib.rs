@@ -132,6 +132,7 @@ pub mod eincode;
 pub mod exhaustive;
 pub mod expr_tree;
 pub mod greedy;
+pub mod greensa;
 pub mod incidence_list;
 pub mod json;
 pub mod label;
@@ -155,6 +156,9 @@ pub use complexity::{
 pub use eincode::{log2_size_dict, uniform_size_dict, EinCode, NestedEinsum, SlicedEinsum};
 pub use exhaustive::{optimize_exhaustive, ExhaustiveSearch, ExhaustiveSearchError};
 pub use greedy::{optimize_greedy, ContractionTree, GreedyMethod, GreedyResult};
+pub use greensa::{
+    green_pipeline, GreenAnnealer, GreenPipeOutcome, GreenReport, GreenTree, TreeSnapshot,
+};
 pub use label::Label;
 pub use score::ScoreFunction;
 pub use slicer::{slice_code, CodeSlicer, Slicer, TreeSASlicer};
