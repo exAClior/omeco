@@ -157,7 +157,8 @@ pub use eincode::{log2_size_dict, uniform_size_dict, EinCode, NestedEinsum, Slic
 pub use exhaustive::{optimize_exhaustive, ExhaustiveSearch, ExhaustiveSearchError};
 pub use greedy::{optimize_greedy, ContractionTree, GreedyMethod, GreedyResult};
 pub use greensa::{
-    green_pipeline, GreenAnnealer, GreenPipeOutcome, GreenReport, GreenTree, TreeSnapshot,
+    green_pipeline, GreenAnnealer, GreenPipeOutcome, GreenReport, GreenTree, Rotation,
+    RotationScratch, TreeSnapshot,
 };
 pub use label::Label;
 pub use score::ScoreFunction;

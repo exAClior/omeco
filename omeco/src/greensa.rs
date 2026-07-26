@@ -448,6 +448,20 @@ impl GreenTree {
         self.root
     }
 
+    /// Children of an internal node, or `None` for leaves.
+    pub fn children(&self, i: usize) -> Option<(usize, usize)> {
+        if self.is_leaf(i) {
+            None
+        } else {
+            Some((self.left[i], self.right[i]))
+        }
+    }
+
+    /// Number of distinct labels in the network.
+    pub fn nlabels(&self) -> usize {
+        self.nlabels
+    }
+
     /// Total objective: sum of `stepcost` over internal nodes.
     pub fn total_cost(&self) -> f64 {
         self.stepcost.iter().sum()
@@ -571,10 +585,41 @@ impl GreenTree {
             return None;
         }
         let c = cands[rng.random_range(0..ncand)];
-        let x = if c == a { b } else { a };
         let bb = self.left[c];
         let cc = self.right[c];
         let keep = if rng.random::<bool>() { bb } else { cc };
+        self.rotate_at(n, c, keep, scratch)
+    }
+
+    /// Targeted rotation: rotate at internal node `n` with internal child
+    /// `c`, keeping child `keep` of `c` attached to `c` while the other
+    /// child of `c` moves up to `n`. Returns `None` if the indices do not
+    /// describe a valid rotation. This is the deterministic core of
+    /// [`Self::try_rotation`]; it also enables exhaustive move scans.
+    pub fn rotate_at(
+        &mut self,
+        n: usize,
+        c: usize,
+        keep: usize,
+        scratch: &mut RotationScratch,
+    ) -> Option<Rotation> {
+        if n >= self.nnodes() || self.is_leaf(n) {
+            return None;
+        }
+        let a = self.left[n];
+        let b = self.right[n];
+        if c != a && c != b {
+            return None;
+        }
+        if self.is_leaf(c) {
+            return None;
+        }
+        let bb = self.left[c];
+        let cc = self.right[c];
+        if keep != bb && keep != cc {
+            return None;
+        }
+        let x = if c == a { b } else { a };
         let mov = if keep == bb { cc } else { bb };
 
         let rot = Rotation {
@@ -1418,9 +1463,31 @@ mod tests {
         }
     }
 
-
-
-
+    #[test]
+    fn rotate_at_matches_random_wrapper_and_undoes() {
+        let (ixs, iy, log2_sizes) = ring_network(16, 4, 61);
+        let is_complex = mixed_complex(ixs.len());
+        let mut tree = make_tree(&ixs, &iy, &log2_sizes, &is_complex, 3.0, 2.0);
+        let mut scratch = RotationScratch::new(tree.nlabels);
+        let before = tree.clone();
+        let mut applied = 0;
+        for n in 0..tree.nnodes() {
+            let Some((a, b)) = tree.children(n) else { continue };
+            for c in [a, b] {
+                let Some((bb, cc)) = tree.children(c) else { continue };
+                for keep in [bb, cc] {
+                    let Some(rot) = tree.rotate_at(n, c, keep, &mut scratch) else {
+                        continue;
+                    };
+                    applied += 1;
+                    tree.undo(&rot, &mut scratch);
+                    assert_eq!(tree.counts, before.counts);
+                    assert_eq!(tree.stepcost, before.stepcost);
+                }
+            }
+        }
+        assert!(applied > 0);
+        // invalid indices are rejected
+        assert!(tree.rotate_at(0, usize::MAX, 0, &mut scratch).is_none());
+    }
 }
-
-
